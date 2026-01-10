@@ -1,0 +1,13 @@
+{
+  "name": "ping-monitor-wol",
+  "version": "1.0.0",
+  "description": "Monitor IP and send WOL with Telegram notify",
+  "main": "monitor.js",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "ping": "^0.4.4",
+    "wake_on_lan": "^1.0.0"
+  },
+  "author": "Tanakorn Piamsin"
+}
