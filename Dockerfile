@@ -4,6 +4,9 @@ WORKDIR /app
 
 COPY package*.json ./
 
+# ติดตั้ง ping และเครื่องมือเครือข่ายที่จำเป็น
+RUN apk add --no-cache iputils iproute2
+
 RUN npm install
 
 COPY . .
