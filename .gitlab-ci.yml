@@ -9,7 +9,7 @@ variables:
 
 before_script:
   # ทำการ login ครั้งเดียว โดยไม่บันทึกรหัสผ่านลงไฟล์
-  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  - echo "$CI_REGISTRY_PASSWORD" | sudo docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
 
 system-info:
   stage: check-system
@@ -18,7 +18,7 @@ system-info:
   script:
     - echo "=== System Info ==="
     - id && uptime && hostname
-    - docker ps -a
+    - sudo docker ps -a
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
 
@@ -28,7 +28,7 @@ build-docker-pi:
     - docker-build-x86
   script:
     # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
-    - docker buildx build --platform linux/arm64  -t $DOCKER_IMAGE:latest  -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
+    - sudo docker buildx build --platform linux/arm64  -t $DOCKER_IMAGE:latest  -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_TAG
@@ -41,11 +41,11 @@ deploy-pi-zero:
     - build-docker-pi
   script:
     - echo "=== Deploying to Pi Zero 2W ==="
-    - docker pull $DOCKER_IMAGE:latest
-    - docker stop ping-monitor-wol || true
-    - docker rm ping-monitor-wol || true
+    - sudo docker pull $DOCKER_IMAGE:latest
+    - sudo docker stop ping-monitor-wol || true
+    - sudo docker rm ping-monitor-wol || true
     - |
-      docker run -d \
+      sudo docker run -d \
         --name ping-monitor-wol \
         --restart=always \
         -e TARGET_IP="$TARGET_IP" \
@@ -57,7 +57,7 @@ deploy-pi-zero:
         -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
         -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" \
         $DOCKER_IMAGE:latest
-    - docker ps --filter name=ping-monitor-wol
+    - sudo docker ps --filter name=ping-monitor-wol
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_TAG
