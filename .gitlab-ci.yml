@@ -29,7 +29,7 @@ build-docker-pi:
   tags:
     - docker-build-x86
   script:
-    - docker buildx build --builder cloud-thaigqsoft-docker-hub --platform linux/arm64 -t ping-monitor-wol:latest -t ping-monitor-wol:$CI_COMMIT_SHORT_SHA --push .
+    - docker buildx build --platform linux/arm64 -t ping-monitor-wol:latest -t ping-monitor-wol:$CI_COMMIT_SHORT_SHA --push .
   only:
     - main
     - master
