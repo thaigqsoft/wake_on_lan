@@ -79,17 +79,7 @@ deploy-pi-zero:
     - sudo docker stop ping-monitor-wol || true
     - sudo docker rm ping-monitor-wol || true
     - echo "--- Running new container with auto-restart ---"
-    - |
-      sudo docker run -d --name ping-monitor-wol --restart=always \
-        -e TARGET_IP="$TARGET_IP" \
-        -e TARGET_MAC="$TARGET_MAC" \
-        -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" \
-        -e CHECK_INTERVAL_SEC="$CHECK_INTERVAL_SEC" \
-        -e SKIP_START_HOUR="$SKIP_START_HOUR" \
-        -e SKIP_END_HOUR="$SKIP_END_HOUR" \
-        -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
-        -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" \
-        registry-room.mt108.info/lab/scripts/wake_on_lan:latest
+    - sudo docker run -d --name ping-monitor-wol --restart=always -e TARGET_IP="$TARGET_IP" -e TARGET_MAC="$TARGET_MAC" -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" -e CHECK_INTERVAL_SEC="$CHECK_INTERVAL_SEC" -e SKIP_START_HOUR="$SKIP_START_HOUR" -e SKIP_END_HOUR="$SKIP_END_HOUR" -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" registry-room.mt108.info/lab/scripts/wake_on_lan:latest
     - echo "--- Container status ---"
     - sudo docker ps --filter name=ping-monitor-wol
     - echo "--- Verify environment in container ---"
