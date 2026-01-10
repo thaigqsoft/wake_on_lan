@@ -28,10 +28,7 @@ build-docker-pi:
     - docker-build-x86
   script:
     # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
-    - docker buildx build --platform linux/arm64 \
-        -t $DOCKER_IMAGE:latest \
-        -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA \
-        --push .
+    - docker buildx build --platform linux/arm64  -t $DOCKER_IMAGE:latest  -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_TAG
@@ -47,7 +44,8 @@ deploy-pi-zero:
     - docker pull $DOCKER_IMAGE:latest
     - docker stop ping-monitor-wol || true
     - docker rm ping-monitor-wol || true
-    - docker run -d \
+    - |
+      docker run -d \
         --name ping-monitor-wol \
         --restart=always \
         -e TARGET_IP="$TARGET_IP" \
