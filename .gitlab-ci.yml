@@ -3,10 +3,13 @@ stages:
   - build-docker
   - deploy-docker
 
+variables:
+  # ดึงค่าจาก GitLab Settings
+  DOCKER_IMAGE: "registry-room.mt108.info/lab/scripts/wake_on_lan"
+
 before_script:
-  - 'echo "This will run before every job"'
-  - echo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY > /data/docker-login.txt
-  - 'sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY'
+  # ทำการ login ครั้งเดียว โดยไม่บันทึกรหัสผ่านลงไฟล์
+  - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
 
 system-info:
   stage: check-system
@@ -14,54 +17,49 @@ system-info:
     - pizero2w
   script:
     - echo "=== System Info ==="
-    - echo "--- User ID ---"
-    - id
-    - echo ""
-    - echo "--- Uptime ---"
-    - uptime
-    - echo ""
-    - echo "--- Hostname ---"
-    - hostname
-    - sudo docker ps -a
-  only:
-    - main
-    - master
-
+    - id && uptime && hostname
+    - docker ps -a
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
 
 build-docker-pi:
   stage: build-docker
   tags:
     - docker-build-x86
   script:
-    - docker buildx build --platform linux/arm64 --build-arg TARGET_IP=$TARGET_IP --build-arg TARGET_MAC=$TARGET_MAC --build-arg DOWNTIME_THRESHOLD_MIN=$DOWNTIME_THRESHOLD_MIN --build-arg CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC --build-arg SKIP_START_HOUR=$SKIP_START_HOUR --build-arg SKIP_END_HOUR=$SKIP_END_HOUR --build-arg TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN --build-arg TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID -t registry-room.mt108.info/lab/scripts/wake_on_lan:latest -t registry-room.mt108.info/lab/scripts/wake_on_lan:$CI_COMMIT_SHORT_SHA --push .
-  only:
-    - main
-    - master
-    - tags
-  needs:
-    - system-info
-
+    # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
+    - docker buildx build --platform linux/arm64 \
+        -t $DOCKER_IMAGE:latest \
+        -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA \
+        --push .
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_TAG
 
 deploy-pi-zero:
   stage: deploy-docker
   tags:
     - pizero2w
-  script:
-    - echo "=== Deploying to Pi Zero 2W ==="
-    - echo "--- Checking Environment Variables ---"
-    - echo "TARGET_IP: $TARGET_IP"
-    - echo "TARGET_MAC: $TARGET_MAC"
-    - sudo docker pull registry-room.mt108.info/lab/scripts/wake_on_lan:latest
-    - echo "--- Stopping and removing old container ---"
-    - sudo docker stop ping-monitor-wol || true
-    - sudo docker rm ping-monitor-wol || true
-    - echo "--- Running new container with auto-restart ---"
-    - sudo docker run -d --name ping-monitor-wol --restart=always -e TARGET_IP="$TARGET_IP" -e TARGET_MAC="$TARGET_MAC" -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" -e CHECK_INTERVAL_SEC="$CHECK_INTERVAL_SEC" -e SKIP_START_HOUR="$SKIP_START_HOUR" -e SKIP_END_HOUR="$SKIP_END_HOUR" -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" registry-room.mt108.info/lab/scripts/wake_on_lan:latest
-    - echo "--- Container status ---"
-    - sudo docker ps --filter name=ping-monitor-wol
-  only:
-    - main
-    - master
-    - tags
   needs:
     - build-docker-pi
+  script:
+    - echo "=== Deploying to Pi Zero 2W ==="
+    - docker pull $DOCKER_IMAGE:latest
+    - docker stop ping-monitor-wol || true
+    - docker rm ping-monitor-wol || true
+    - docker run -d \
+        --name ping-monitor-wol \
+        --restart=always \
+        -e TARGET_IP="$TARGET_IP" \
+        -e TARGET_MAC="$TARGET_MAC" \
+        -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" \
+        -e CHECK_INTERVAL_SEC="$CHECK_INTERVAL_SEC" \
+        -e SKIP_START_HOUR="$SKIP_START_HOUR" \
+        -e SKIP_END_HOUR="$SKIP_END_HOUR" \
+        -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+        -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" \
+        $DOCKER_IMAGE:latest
+    - docker ps --filter name=ping-monitor-wol
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_TAG
