@@ -1,0 +1,67 @@
+stages:
+  - check-system
+  - build-docker
+  - deploy-docker
+
+
+system-info:
+  stage: check-system
+  tags:
+    - pizero2w
+  script:
+    - echo "=== System Info ==="
+    - echo "--- User ID ---"
+    - id
+    - echo ""
+    - echo "--- Uptime ---"
+    - uptime
+    - echo ""
+    - echo "--- Hostname ---"
+    - hostname
+    - docker ps -a
+  only:
+    - main
+    - master
+
+
+build-docker-pi:
+  stage: build-docker
+  tags:
+    - docker-build-x86
+  script:
+    - docker buildx build --builder cloud-thaigqsoft-docker-hub --platform linux/arm64 -t ping-monitor-wol:latest -t ping-monitor-wol:$CI_COMMIT_SHORT_SHA --push .
+  only:
+    - main
+    - master
+    - tags
+
+
+deploy-pi-zero:
+  stage: deploy-docker
+  tags:
+    - pizero2w
+  script:
+    - echo "=== Deploying to Pi Zero 2W ==="
+    - echo "--- Ensure Docker is enabled to start on boot ---"
+    - sudo systemctl enable docker || true
+    - docker pull ping-monitor-wol:latest
+    - echo "--- Stopping and removing old container ---"
+    - docker stop ping-monitor-wol || true
+    - docker rm ping-monitor-wol || true
+    - echo "--- Running new container with auto-restart ---"
+    - docker run -d --name ping-monitor-wol --restart=always \
+      -e TARGET_IP=$TARGET_IP \
+      -e TARGET_MAC=$TARGET_MAC \
+      -e DOWNTIME_THRESHOLD_MIN=$DOWNTIME_THRESHOLD_MIN \
+      -e CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC \
+      -e SKIP_START_HOUR=$SKIP_START_HOUR \
+      -e SKIP_END_HOUR=$SKIP_END_HOUR \
+      -e TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN \
+      -e TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID \
+      ping-monitor-wol:latest
+    - echo "--- Container status ---"
+    - docker ps --filter name=ping-monitor-wol
+  only:
+    - main
+    - master
+    - tags
