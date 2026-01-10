@@ -43,20 +43,7 @@ build-docker-pi:
   tags:
     - docker-build-x86
   script:
-    - |
-      docker buildx build \
-        --platform linux/arm64 \
-        --build-arg TARGET_IP=$TARGET_IP \
-        --build-arg TARGET_MAC=$TARGET_MAC \
-        --build-arg DOWNTIME_THRESHOLD_MIN=$DOWNTIME_THRESHOLD_MIN \
-        --build-arg CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC \
-        --build-arg SKIP_START_HOUR=$SKIP_START_HOUR \
-        --build-arg SKIP_END_HOUR=$SKIP_END_HOUR \
-        --build-arg TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN \
-        --build-arg TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID \
-        -t registry-room.mt108.info/lab/scripts/wake_on_lan:latest \
-        -t registry-room.mt108.info/lab/scripts/wake_on_lan:$CI_COMMIT_SHORT_SHA \
-        --push .
+    - docker buildx build --platform linux/arm64 --build-arg TARGET_IP=$TARGET_IP --build-arg TARGET_MAC=$TARGET_MAC --build-arg DOWNTIME_THRESHOLD_MIN=$DOWNTIME_THRESHOLD_MIN --build-arg CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC --build-arg SKIP_START_HOUR=$SKIP_START_HOUR --build-arg SKIP_END_HOUR=$SKIP_END_HOUR --build-arg TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN --build-arg TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID -t registry-room.mt108.info/lab/scripts/wake_on_lan:latest -t registry-room.mt108.info/lab/scripts/wake_on_lan:$CI_COMMIT_SHORT_SHA --push .
   only:
     - main
     - master
