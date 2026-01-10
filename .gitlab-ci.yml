@@ -16,7 +16,7 @@ variables:
 before_script:
   - 'echo "This will run before every job"'
   - echo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY > /data/docker-login.txt
-  - 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY'
+  - 'sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY'
 
 system-info:
   stage: check-system
