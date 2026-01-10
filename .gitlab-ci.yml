@@ -34,6 +34,8 @@ build-docker-pi:
     - main
     - master
     - tags
+  needs:
+    - system-info
 
 
 deploy-pi-zero:
@@ -44,12 +46,12 @@ deploy-pi-zero:
     - echo "=== Deploying to Pi Zero 2W ==="
     - echo "--- Ensure Docker is enabled to start on boot ---"
     - sudo systemctl enable docker || true
-    - docker pull ping-monitor-wol:latest
+    - sudo docker pull ping-monitor-wol:latest
     - echo "--- Stopping and removing old container ---"
-    - docker stop ping-monitor-wol || true
-    - docker rm ping-monitor-wol || true
+    - sudo docker stop ping-monitor-wol || true
+    - sudo docker rm ping-monitor-wol || true
     - echo "--- Running new container with auto-restart ---"
-    - docker run -d --name ping-monitor-wol --restart=always \
+    - sudo docker run -d --name ping-monitor-wol --restart=always \
       -e TARGET_IP=$TARGET_IP \
       -e TARGET_MAC=$TARGET_MAC \
       -e DOWNTIME_THRESHOLD_MIN=$DOWNTIME_THRESHOLD_MIN \
@@ -60,8 +62,10 @@ deploy-pi-zero:
       -e TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID \
       ping-monitor-wol:latest
     - echo "--- Container status ---"
-    - docker ps --filter name=ping-monitor-wol
+    - sudo docker ps --filter name=ping-monitor-wol
   only:
     - main
     - master
     - tags
+  needs:
+    - build-docker-pi
