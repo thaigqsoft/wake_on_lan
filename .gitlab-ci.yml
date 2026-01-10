@@ -18,7 +18,7 @@ system-info:
     - echo ""
     - echo "--- Hostname ---"
     - hostname
-    - docker ps -a
+    - sudo docker ps -a
   only:
     - main
     - master
