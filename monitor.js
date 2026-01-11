@@ -18,6 +18,33 @@ const CONFIG = {
 let downTimeCounter = 0;
 let isFirstDownNotify = true; // ใช้สำหรับคุมการแจ้งเตือนไม่ให้ส่งรัวเกินไป
 
+// ตรวจสอบค่า config ที่จำเป็น
+if (!CONFIG.ip || !CONFIG.mac) {
+    console.error('❌ ERROR: Missing required configuration!');
+    console.error('IP:', CONFIG.ip);
+    console.error('MAC:', CONFIG.mac);
+    console.error('Please check your .env file');
+    process.exit(1);
+}
+
+if (isNaN(CONFIG.threshold) || CONFIG.threshold <= 0) {
+    console.error('❌ ERROR: Invalid threshold value!');
+    console.error('DOWNTIME_THRESHOLD_MIN:', process.env.DOWNTIME_THRESHOLD_MIN);
+    console.error('Parsed threshold:', CONFIG.threshold);
+    process.exit(1);
+}
+
+// แสดงค่า config เมื่อเริ่มทำงาน
+console.log('═════════════════════════════════════════');
+console.log('📋 CONFIGURATION:');
+console.log('  Target IP:', CONFIG.ip);
+console.log('  Target MAC:', CONFIG.mac);
+console.log('  Threshold:', CONFIG.threshold, 'minutes');
+console.log('  Check Interval:', CONFIG.interval / 1000, 'seconds');
+console.log('  Skip Time:', CONFIG.skipStart, '- ' + CONFIG.skipEnd, 'hours');
+console.log('  Timezone:', CONFIG.timezone);
+console.log('═════════════════════════════════════════\n');
+
 // ฟังก์ชันส่งข้อความเข้า Telegram
 async function sendTelegram(message) {
     const url = `https://api.telegram.org/bot${CONFIG.tgToken}/sendMessage`;
@@ -39,7 +66,13 @@ function isExcludedTime() {
         hour12: false
     });
     const currentHour = parseInt(formatter.format(new Date()), 10);
-    return currentHour >= CONFIG.skipStart && currentHour < CONFIG.skipEnd;
+    const isExcluded = currentHour >= CONFIG.skipStart && currentHour < CONFIG.skipEnd;
+
+    if (isExcluded) {
+        console.log(`⏸️  [SKIP] Current hour (${currentHour}:00) is within skip window (${CONFIG.skipStart}:00 - ${CONFIG.skipEnd}:00)`);
+    }
+
+    return isExcluded;
 }
 
 async function monitorDevice() {
@@ -83,18 +116,24 @@ async function monitorDevice() {
 
             // เมื่อดับเกินเวลาที่กำหนด -> ส่ง WOL
             if (downTimeCounter >= CONFIG.threshold) {
-                console.error(`!!! Threshold reached. Sending WOL...`);
-                
+                console.error(`\n⚡ Threshold reached (${downTimeCounter}/${CONFIG.threshold})`);
+                console.error(`🔌 Sending Wake-on-LAN to MAC: ${CONFIG.mac}`);
+
                 wol.wake(CONFIG.mac, async (err) => {
                     if (err) {
+                        console.error(`❌ WOL Error:`, err.message);
                         await sendTelegram(`❌ Failed to send WOL to ${CONFIG.mac}\nError: ${err.message}`);
                     } else {
+                        console.log(`✅ WOL packet sent successfully to ${CONFIG.mac}`);
                         await sendTelegram(`🚀 Sent <b>Wake-on-LAN</b> to ${CONFIG.mac}\nDue to ${CONFIG.threshold} mins downtime.`);
                     }
                 });
-                
+
                 // กันการส่ง WOL รัวๆ: ให้รออีก 15 นาทีค่อยส่งใหม่ถ้ายังไม่ติด
-                downTimeCounter = 0; 
+                console.log(`🔄 Resetting counter to prevent duplicate WOL\n`);
+                downTimeCounter = 0;
+            } else {
+                console.log(`⏳ Waiting for threshold (${downTimeCounter}/${CONFIG.threshold}) before WOL`);
             }
         }
     } catch (err) {
