@@ -41,8 +41,39 @@ console.log('  Target IP:', CONFIG.ip);
 console.log('  Target MAC:', CONFIG.mac);
 console.log('  Threshold:', CONFIG.threshold, 'minutes');
 console.log('  Check Interval:', CONFIG.interval / 1000, 'seconds');
-console.log('  Skip Time:', CONFIG.skipStart, '- ' + CONFIG.skipEnd, 'hours');
 console.log('  Timezone:', CONFIG.timezone);
+console.log('═════════════════════════════════════════');
+
+// แสดงตารางเวลาการทำงาน
+console.log('\n📅 SCHEDULE TABLE (Timezone: ' + CONFIG.timezone + ')');
+console.log('─'.repeat(60));
+console.log('  Time Range     | Status   | Description');
+console.log('─'.repeat(60));
+
+for (let i = 0; i < 24; i++) {
+    let status, desc, timeRange;
+
+    if (i >= CONFIG.skipStart && i < CONFIG.skipEnd) {
+        status = '⏸️ SKIP';
+        desc = 'No monitoring, counter reset';
+    } else {
+        status = '✅ ACTIVE';
+        desc = 'Monitoring enabled';
+    }
+
+    const hourStr = i.toString().padStart(2, '0') + ':00';
+    const nextHour = ((i + 1) % 24).toString().padStart(2, '0') + ':00';
+    timeRange = `${hourStr} - ${nextHour}`;
+
+    const separator = i === CONFIG.skipEnd - 1 || (CONFIG.skipEnd === 0 && i === 23) ? '╪' : '│';
+
+    console.log(`  ${timeRange} ${separator} ${status.padEnd(10)} ${desc}`);
+}
+
+console.log('─'.repeat(60));
+console.log(`\n⚠️  Skip Window: ${CONFIG.skipStart.toString().padStart(2, '0')}:00 - ${CONFIG.skipEnd.toString().padStart(2, '0')}:00`);
+console.log(`⚡  Monitoring:   00:00 - ${CONFIG.skipStart.toString().padStart(2, '0')}:00, ${CONFIG.skipEnd.toString().padStart(2, '0')}:00 - 23:59\n`);
+
 console.log('═════════════════════════════════════════\n');
 
 // ฟังก์ชันส่งข้อความเข้า Telegram
