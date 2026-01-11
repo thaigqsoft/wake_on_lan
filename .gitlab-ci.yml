@@ -28,7 +28,7 @@ build-docker-pi:
     - docker-build-x86
   script:
     # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
-    - sudo docker buildx build --platform linux/arm64  -t $DOCKER_IMAGE:latest  -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
+    - sudo docker buildx build --platform linux/arm64 --provenance=false -t $DOCKER_IMAGE:latest  -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
     - if: $CI_COMMIT_TAG
