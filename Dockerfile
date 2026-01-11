@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# ติดตั้ง ping และเครื่องมือเครือข่ายที่จำเป็น
-RUN apk add --no-cache iputils iproute2
+# ติดตั้ง ping, เครื่องมือเครือข่าย, และ tzdata สำหรับ timezone
+RUN apk add --no-cache iputils iproute2 tzdata
 
 RUN npm install
 
@@ -18,6 +18,7 @@ ARG DOWNTIME_THRESHOLD_MIN
 ARG CHECK_INTERVAL_SEC
 ARG SKIP_START_HOUR
 ARG SKIP_END_HOUR
+ARG TIMEZONE=Asia/Bangkok
 ARG TELEGRAM_BOT_TOKEN
 ARG TELEGRAM_CHAT_ID
 
@@ -27,7 +28,11 @@ ENV DOWNTIME_THRESHOLD_MIN=${DOWNTIME_THRESHOLD_MIN}
 ENV CHECK_INTERVAL_SEC=${CHECK_INTERVAL_SEC}
 ENV SKIP_START_HOUR=${SKIP_START_HOUR}
 ENV SKIP_END_HOUR=${SKIP_END_HOUR}
+ENV TIMEZONE=${TIMEZONE}
+ENV TZ=${TIMEZONE}
 ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
 ENV TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 CMD ["node", "monitor.js"]

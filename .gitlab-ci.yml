@@ -54,6 +54,7 @@ deploy-pi-zero:
         -e CHECK_INTERVAL_SEC="$CHECK_INTERVAL_SEC" \
         -e SKIP_START_HOUR="$SKIP_START_HOUR" \
         -e SKIP_END_HOUR="$SKIP_END_HOUR" \
+        -e TIMEZONE="$TIMEZONE" \
         -e TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
         -e TELEGRAM_CHAT_ID="$TELEGRAM_CHAT_ID" \
         $DOCKER_IMAGE:latest

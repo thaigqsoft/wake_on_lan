@@ -10,6 +10,7 @@ const CONFIG = {
     interval: parseInt(process.env.CHECK_INTERVAL_SEC) * 1000,
     skipStart: parseInt(process.env.SKIP_START_HOUR),
     skipEnd: parseInt(process.env.SKIP_END_HOUR),
+    timezone: process.env.TIMEZONE || 'Asia/Bangkok',
     tgToken: process.env.TELEGRAM_BOT_TOKEN,
     tgChatId: process.env.TELEGRAM_CHAT_ID
 };
@@ -32,12 +33,27 @@ async function sendTelegram(message) {
 }
 
 function isExcludedTime() {
-    const currentHour = new Date().getHours();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: CONFIG.timezone,
+        hour: 'numeric',
+        hour12: false
+    });
+    const currentHour = parseInt(formatter.format(new Date()), 10);
     return currentHour >= CONFIG.skipStart && currentHour < CONFIG.skipEnd;
 }
 
 async function monitorDevice() {
-    const now = new Date().toLocaleString('th-TH');
+    const formatter = new Intl.DateTimeFormat('th-TH', {
+        timeZone: CONFIG.timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const now = formatter.format(new Date());
 
     if (isExcludedTime()) {
         if (downTimeCounter > 0) downTimeCounter = 0;
