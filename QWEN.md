@@ -118,6 +118,7 @@ const currentHour = parseInt(formatter.format(new Date()), 10);
 docker run -d \
   --name ping-monitor-wol \
   --restart=always \
+  --network host \
   -e TARGET_IP="$TARGET_IP" \
   -e TARGET_MAC="$TARGET_MAC" \
   -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" \
@@ -207,7 +208,7 @@ pm2 save
 ### With Docker:
 ```bash
 docker build -t ping-monitor-wol .
-docker run -d --name ping-monitor-wol --restart=always \
+docker run -d --name ping-monitor-wol --restart=always --network host \
   -e TARGET_IP="..." -e TARGET_MAC="..." \
   -e TIMEZONE="Asia/Bangkok" \
   ping-monitor-wol

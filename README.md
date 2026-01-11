@@ -60,6 +60,7 @@
    docker run -d \
      --name ping-monitor-wol \
      --restart=always \
+     --network host \
      -e TARGET_IP="192.168.161.100" \
      -e TARGET_MAC="74:56:3c:d0:f8:82" \
      -e DOWNTIME_THRESHOLD_MIN="15" \
@@ -187,6 +188,7 @@ pm2 start monitor.js --name wol-monitor
 docker run -d \
   --name ping-monitor-wol \
   --restart=always \
+  --network host \
   -e TARGET_IP="$TARGET_IP" \
   -e TARGET_MAC="$TARGET_MAC" \
   -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" \

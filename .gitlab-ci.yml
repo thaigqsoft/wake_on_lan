@@ -48,6 +48,7 @@ deploy-pi-zero:
       sudo docker run -d \
         --name ping-monitor-wol \
         --restart=always \
+        --network host \
         -e TARGET_IP="$TARGET_IP" \
         -e TARGET_MAC="$TARGET_MAC" \
         -e DOWNTIME_THRESHOLD_MIN="$DOWNTIME_THRESHOLD_MIN" \

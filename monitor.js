@@ -150,13 +150,25 @@ async function monitorDevice() {
                 console.error(`\n⚡ Threshold reached (${downTimeCounter}/${CONFIG.threshold})`);
                 console.error(`🔌 Sending Wake-on-LAN to MAC: ${CONFIG.mac}`);
 
-                wol.wake(CONFIG.mac, async (err) => {
+                // แปลง IP เป็น Broadcast Address (เช่น 192.168.161.100 -> 192.168.161.255)
+                const ipParts = CONFIG.ip.split('.');
+                const broadcastAddress = `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.255`;
+
+                console.log(`📡 Using Broadcast Address: ${broadcastAddress}`);
+
+                const wolOptions = {
+                    address: broadcastAddress,
+                    port: 9,
+                    num_packets: 3  // ส่ง 3 ครั้งเพื่อความมั่นใจ
+                };
+
+                wol.wake(CONFIG.mac, wolOptions, async (err) => {
                     if (err) {
                         console.error(`❌ WOL Error:`, err.message);
                         await sendTelegram(`❌ Failed to send WOL to ${CONFIG.mac}\nError: ${err.message}`);
                     } else {
-                        console.log(`✅ WOL packet sent successfully to ${CONFIG.mac}`);
-                        await sendTelegram(`🚀 Sent <b>Wake-on-LAN</b> to ${CONFIG.mac}\nDue to ${CONFIG.threshold} mins downtime.`);
+                        console.log(`✅ WOL packet sent successfully to ${CONFIG.mac} via ${broadcastAddress}`);
+                        await sendTelegram(`🚀 Sent <b>Wake-on-LAN</b> to ${CONFIG.mac}\nBroadcast: ${broadcastAddress}\nDue to ${CONFIG.threshold} mins downtime.`);
                     }
                 });
 
