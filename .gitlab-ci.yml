@@ -14,7 +14,7 @@ before_script:
 system-info:
   stage: check-system
   tags:
-    - pizero2w
+    - room-pi
   script:
     - echo "=== System Info ==="
     - id && uptime && hostname
