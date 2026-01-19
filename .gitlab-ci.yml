@@ -36,7 +36,7 @@ build-docker-pi:
 deploy-pi-zero:
   stage: deploy-docker
   tags:
-    - pizero2w
+    - room-pi
   needs:
     - build-docker-pi
   script:
