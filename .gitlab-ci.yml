@@ -27,7 +27,7 @@ build-docker-pi:
   tags:
     - docker-build-x86
   retry:
-    max: 3
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
