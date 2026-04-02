@@ -32,7 +32,6 @@ build-docker-pi:
       - runner_system_failure
       - stuck_or_timeout_failure
       - unknown_failure
-      - unknown_error
   script:
     # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
     - echo "=== Building and pushing Docker image ==="
