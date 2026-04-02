@@ -28,7 +28,6 @@ build-docker-pi:
     - docker-build-x86
   retry:
     max: 2
-    delay: 30s
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
