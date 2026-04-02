@@ -33,6 +33,7 @@ build-docker-pi:
       - stuck_or_timeout_failure
       - unknown_failure
   script:
+    - echo "$CI_REGISTRY_PASSWORD" | sudo docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     # ใช้ buildx เพื่อสร้าง image สำหรับ arm64
     - echo "=== Building and pushing Docker image ==="
     - sudo docker buildx build --platform linux/arm64 --provenance=false -t $DOCKER_IMAGE:latest -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --push .
