@@ -9,6 +9,7 @@ variables:
 
 before_script:
   # ทำการ login ครั้งเดียว โดยไม่บันทึกรหัสผ่านลงไฟล์
+  - echo $CI_REGISTRY
   - echo "$CI_REGISTRY_PASSWORD" | sudo docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
 
 system-info:
